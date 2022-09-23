@@ -8,7 +8,6 @@ import { api } from 'helpers/helpers';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useCallback } from 'react';
-import { useIsExist } from 'hooks/apiHook';
 export class App1 extends Component {
   state = {
     query: '',
@@ -132,30 +131,24 @@ export class App1 extends Component {
 }
 
 export const App = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadMore, setLoadMore] = useState(true);
+  const [isModal, setIsModal] = useState(false);
+
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
+
   const [imgItems, setImgItems] = useState(null);
   const [modalData, setModalData] = useState([]);
-
-  const {
-    isModal,
-    setIsModal,
-    isLoadMore,
-    setLoadMore,
-    isLoading,
-    setIsLoading,
-  } = useIsExist();
-  // const [isLoading, setIsLoading] = useState(true);
-  // const [isLoadMore, setLoadMore] = useState(true);
-  // const [isModal, setIsModal] = useState(false);
 
   const loadImg = useCallback(async () => {
     try {
       const response = await api(query, page);
       const { totalHits, hits } = response;
 
-      if (!+totalHits) {
+      if (totalHits === 0) {
         setImgItems([]);
+        setPage(1);
         return toast.error('nothing found');
       }
       if (Math.ceil(totalHits / 16) === +page) {
