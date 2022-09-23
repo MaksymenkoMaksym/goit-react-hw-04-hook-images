@@ -10,7 +10,7 @@ export async function api(query, page) {
   });
 
   const END_POINT = `https://pixabay.com/api/?${searchParams}`;
-  const response = fetch(END_POINT);
-  const data = await (await response).json();
+  const response = await fetch(END_POINT);
+  const data = await response.json();
   return data;
 }

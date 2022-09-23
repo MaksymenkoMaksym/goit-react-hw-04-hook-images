@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect, Component } from 'react';
 import Searchbar from './Searchbar';
 import ImageGallery from './ImageGallery';
 import Button from './Button';
@@ -7,8 +7,9 @@ import Modal from './Modal';
 import { api } from 'helpers/helpers';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-export class App extends Component {
+import { useCallback } from 'react';
+import { useIsExist } from 'hooks/apiHook';
+export class App1 extends Component {
   state = {
     query: '',
     page: 1,
@@ -18,9 +19,7 @@ export class App extends Component {
     isModal: false,
     modalData: [],
   };
-  getSnapshotBeforeUpdate(prevProps, prevState) {
-    return null;
-  }
+
   async componentDidMount() {
     console.log('componentDidMount');
     const { query, page, total } = this.state;
@@ -131,3 +130,114 @@ export class App extends Component {
     );
   }
 }
+
+export const App = () => {
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [imgItems, setImgItems] = useState(null);
+  const [modalData, setModalData] = useState([]);
+
+  const {
+    isModal,
+    setIsModal,
+    isLoadMore,
+    setLoadMore,
+    isLoading,
+    setIsLoading,
+  } = useIsExist();
+  // const [isLoading, setIsLoading] = useState(true);
+  // const [isLoadMore, setLoadMore] = useState(true);
+  // const [isModal, setIsModal] = useState(false);
+
+  const loadImg = useCallback(async () => {
+    try {
+      const response = await api(query, page);
+      const { totalHits, hits } = response;
+
+      if (!+totalHits) {
+        setImgItems([]);
+        return toast.error('nothing found');
+      }
+      if (Math.ceil(totalHits / 16) === +page) {
+        setLoadMore(false);
+      }
+      if (page === 1) {
+        setImgItems(hits);
+        setLoadMore(true);
+        toast.success(`Total found ${totalHits} images`);
+      } else {
+        setImgItems(prevState => [...prevState, ...hits]);
+      }
+      window.scrollBy({
+        top: window.innerHeight - 76,
+        behavior: 'smooth',
+      });
+    } catch (error) {
+      toast.error(`${error}`);
+    } finally {
+      setIsLoading(false);
+    }
+    // eslint-disable-next-line
+  }, [query, page]);
+
+  useEffect(() => {
+    loadImg();
+  }, [page, query, loadImg]);
+
+  const onSubmitHandler = value => {
+    if (!value) {
+      return toast.info(`Please le me know that are you looking`);
+    }
+    setQuery(value);
+    setPage(1);
+    setIsLoading(true);
+  };
+
+  const loadMoreHandler = () => {
+    setPage(prevState => prevState + 1);
+    // this.setState(prevState => ({ page: prevState.page + 1 }));
+  };
+  const modalHandler = data => {
+    setIsModal(prevState => !prevState);
+    setModalData(data);
+  };
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        gridGap: '16px',
+        paddingBottom: '24px',
+      }}
+    >
+      <Searchbar onSubmitHandler={onSubmitHandler} />
+      {isLoading ? (
+        <Loader isLoading={true} />
+      ) : (
+        <ImageGallery imgItems={imgItems} modalHandler={modalHandler} />
+      )}
+      {isLoadMore && <Button loadMoreHandler={loadMoreHandler} />}
+      {isModal && (
+        <Modal
+          alt={modalData.alt}
+          src={modalData.largeImageURL}
+          modalHandler={modalHandler}
+        />
+      )}
+      <ToastContainer
+        position="center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+      {/* Same as */}
+      <ToastContainer />
+    </div>
+  );
+};
