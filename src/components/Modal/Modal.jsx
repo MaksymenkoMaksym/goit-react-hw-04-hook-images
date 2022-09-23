@@ -3,14 +3,18 @@ import { useEffect } from 'react';
 import { DivModal, DivOverlay } from './Modal.styled';
 
 const Modal = ({ alt, src, modalHandler }) => {
+  const closeModalKeyHandler = e => {
+    if (e.code === 'Escape') {
+      console.log('ESC');
+      modalHandler({});
+    }
+  };
+
   useEffect(() => {
-    const closeModalKeyHandler = e => {
-      if (e.code === 'Escape') {
-        modalHandler({});
-      }
-    };
-    window.addEventListener('keydown', closeModalKeyHandler);
-    return () => window.addEventListener('keydown', closeModalKeyHandler);
+    window.addEventListener('keydown', e => {
+      closeModalKeyHandler(e);
+    });
+    return () => window.removeEventListener('keydown', closeModalKeyHandler);
     // eslint-disable-next-line
   }, []);
 
