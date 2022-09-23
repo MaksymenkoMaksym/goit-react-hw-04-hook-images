@@ -7,7 +7,6 @@ import Modal from './Modal';
 import { api } from 'helpers/helpers';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useCallback } from 'react';
 export class App1 extends Component {
   state = {
     query: '',
@@ -141,41 +140,46 @@ export const App = () => {
   const [imgItems, setImgItems] = useState(null);
   const [modalData, setModalData] = useState([]);
 
-  const loadImg = useCallback(async () => {
+  const loadImg = async () => {
     try {
       const response = await api(query, page);
       const { totalHits, hits } = response;
 
-      if (totalHits === 0) {
-        setImgItems([]);
-        setPage(1);
-        return toast.error('nothing found');
+      if (response) {
+        console.log('response', response);
+        if (totalHits === 0) {
+          console.log('===0');
+          setImgItems([]);
+          setPage(1);
+          return toast.error('nothing found');
+        }
+        if (Math.ceil(totalHits / 16) === page) {
+          setLoadMore(false);
+        }
+        if (page === 1) {
+          console.log('====1');
+          setImgItems(hits);
+          setLoadMore(true);
+          toast.success(`Total found ${totalHits} images`);
+        } else {
+          setImgItems(prevState => [...prevState, ...hits]);
+        }
+        window.scrollBy({
+          top: window.innerHeight - 76,
+          behavior: 'smooth',
+        });
       }
-      if (Math.ceil(totalHits / 16) === +page) {
-        setLoadMore(false);
-      }
-      if (page === 1) {
-        setImgItems(hits);
-        setLoadMore(true);
-        toast.success(`Total found ${totalHits} images`);
-      } else {
-        setImgItems(prevState => [...prevState, ...hits]);
-      }
-      window.scrollBy({
-        top: window.innerHeight - 76,
-        behavior: 'smooth',
-      });
     } catch (error) {
       toast.error(`${error}`);
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line
-  }, [query, page]);
+  };
 
   useEffect(() => {
     loadImg();
-  }, [page, query, loadImg]);
+    // eslint-disable-next-line
+  }, [page, query]);
 
   const onSubmitHandler = value => {
     if (!value) {
