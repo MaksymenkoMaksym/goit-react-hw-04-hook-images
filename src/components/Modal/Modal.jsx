@@ -11,9 +11,7 @@ const Modal = ({ alt, src, modalHandler }) => {
   };
 
   useEffect(() => {
-    window.addEventListener('keydown', e => {
-      closeModalKeyHandler(e);
-    });
+    window.addEventListener('keydown', closeModalKeyHandler);
     return () => window.removeEventListener('keydown', closeModalKeyHandler);
     // eslint-disable-next-line
   }, []);
