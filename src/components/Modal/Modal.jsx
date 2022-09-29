@@ -4,8 +4,8 @@ import { DivModal, DivOverlay } from './Modal.styled';
 
 const Modal = ({ alt, src, modalHandler }) => {
   const closeModalKeyHandler = e => {
-    if (e.code === 'Escape') {
-      console.log('ESC');
+    if (e.code === 'Escape' || e.target === e.currentTarget) {
+      console.log(e.target, e.currentTarget);
       modalHandler({});
     }
   };
@@ -17,13 +17,7 @@ const Modal = ({ alt, src, modalHandler }) => {
   }, []);
 
   return (
-    <DivOverlay
-      onClick={e => {
-        if (e.target === e.currentTarget) {
-          modalHandler({});
-        }
-      }}
-    >
+    <DivOverlay onClick={closeModalKeyHandler}>
       <DivModal>
         <img src={src} alt={alt} />
       </DivModal>
